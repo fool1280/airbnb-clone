@@ -22,6 +22,28 @@ const schema = new mongoose.Schema(
             ref: "User",
             required: true,
         },
+        duration: {
+            type: Number,
+            required: true,
+        },
+        groupSize: {
+            type: Number,
+            required: true,
+        },
+        images: [String],
+        items: [String],
+        price: {
+            type: Number,
+            required: true,
+        },
+        location: {
+            city: String,
+            country: String,
+        },
+        languages: {
+            type: [String],
+            required: true,
+        },
         tags: [
             {
                 type: mongoose.Schema.ObjectId,

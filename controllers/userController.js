@@ -14,7 +14,7 @@ exports.createUser = async (req, res, next) => {
             name: name,
             password: password,
             type: type || "normal",
-            intro: type == "host" ? intro : "",
+            intro: intro || "",
         });
 
         res.status(201).json({

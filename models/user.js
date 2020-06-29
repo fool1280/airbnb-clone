@@ -60,8 +60,8 @@ const schema = new mongoose.Schema(
 schema.methods.toJSON = function () {
     //inside methods, this will refer to instance
     const obj = this.toObject();
-    //delete obj.password;
-    //delete obj.tokens;
+    delete obj.password;
+    delete obj.tokens;
     return obj;
 };
 
