@@ -43,6 +43,13 @@ const schema = new mongoose.Schema(
                 "Introduction is required for host!",
             ],
         },
+        reviews: [
+            {
+                type: mongoose.Schema.ObjectId,
+                ref: "Review",
+                required: true,
+            },
+        ],
     },
     {
         timestamps: true,

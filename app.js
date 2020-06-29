@@ -3,6 +3,7 @@ var express = require("express");
 var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
+const AppError = require("./utils/appError");
 
 const mongoose = require("mongoose");
 
@@ -39,20 +40,33 @@ app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/experiences", expRouter);
 
-// catch 404 and forward to error handler
-app.use(function (req, res, next) {
-    next(createError(404));
+app.route("*").all(function (req, res, next) {
+    let error = new Error("Not Found");
+    error.statusCode = 404;
+    error.status = "fail";
+    next(error);
 });
 
 // error handler
 app.use(function (err, req, res, next) {
+    /*
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get("env") === "development" ? err : {};
 
     // render the error page
     res.status(err.status || 500);
-    res.render("error");
+    res.render("error");*/
+    err.statusCode = err.statusCode || 500;
+    err.status = err.status || "error";
+    err.message = err.message || "Something wrong";
+    if (err) {
+        res.status(err.statusCode).json({
+            status: err.status,
+            message: err.message,
+            stack: err.stack,
+        });
+    }
 });
 
 module.exports = app;
