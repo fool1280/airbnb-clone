@@ -1,13 +1,35 @@
 const Review = require("../models/review");
 const Exp = require("../models/experience");
 
+exports.updateReview = async (req, res, next) => {
+    try {
+        const userId = req.user._id;
+        const experienceId = req.params.id;
+        const experience = await Exp.findById(req.params.id);
+        if (!experience) {
+            throw new Error("Experience not found");
+        }
+        const { content, rating, title } = req.body;
+        const review = await Review.findOneAndUpdate(
+            { user: userId, experience: experienceId },
+            { content, rating, title }
+        );
+        res.json({
+            status: "success",
+            data: review,
+        });
+    } catch (error) {
+        res.json({
+            status: "fail",
+            error: error.message,
+        });
+    }
+};
+
 exports.createReview = async (req, res, next) => {
     try {
         const userId = req.user._id;
         const experienceId = req.params.id;
-        if (!experienceId) {
-            throw new Error("Experience not found");
-        }
         const experience = await Exp.findById(req.params.id);
         if (!experience) {
             throw new Error("Experience not found");
@@ -15,16 +37,22 @@ exports.createReview = async (req, res, next) => {
         if (JSON.stringify(experience.host) == JSON.stringify(userId)) {
             throw new Error("Owner is unauthorized to review");
         }
-        const { content, rating } = req.body;
-        const review = await Review.findOneAndUpdate(
-            { user: userId, experience: experienceId },
-            { content, rating },
-            { upsert: true, new: true, runValidators: true }
-        );
-        res.json({
-            status: "success",
-            data: review,
+        const check = await Review.exists({
+            user: userId,
+            experience: experienceId,
         });
+        if (check) {
+            return res.json({
+                status: "fail",
+                error: "Already review",
+            });
+        }
+        const review = await Review.create({
+            ...req.body,
+            user: userId,
+            experience: experienceId,
+        });
+        res.status(201).json({ status: "ok", data: review });
     } catch (error) {
         res.json({
             status: "fail",

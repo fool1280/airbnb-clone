@@ -51,6 +51,16 @@ const schema = new mongoose.Schema(
                 required: true,
             },
         ],
+        avgRating: {
+            type: Number,
+            default: 0,
+            min: 0,
+            max: 5,
+        },
+        nRating: {
+            type: Number,
+            default: 0,
+        },
     },
     {
         timestamps: true,

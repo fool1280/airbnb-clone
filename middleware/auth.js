@@ -3,7 +3,6 @@ const User = require("../models/user");
 
 exports.loginRequired = async (req, res, next) => {
     try {
-        console.log("Headers:", req.headers);
         const { authorization } = req.headers;
         if (!authorization || !authorization.startsWith("Bearer ")) {
             return res.status(401).json({
