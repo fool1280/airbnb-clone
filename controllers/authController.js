@@ -16,6 +16,7 @@ exports.loginWithEmail = async (req, res, next) => {
             error: "Wrong email or password",
         });
     }
+    /* This is wrong because user can have multiple sessions.
     //Token Expires
     //1) Create a new one // IF NOT: reuse the newest oken
     let n = user.tokens.length;
@@ -40,7 +41,7 @@ exports.loginWithEmail = async (req, res, next) => {
                 },
             });
         }
-    }
+    }*/
     const token = await user.generateToken();
     res.json({
         status: "ok",
@@ -49,4 +50,26 @@ exports.loginWithEmail = async (req, res, next) => {
             token: token,
         },
     });
+};
+
+exports.logoutUser = async (req, res) => {
+    try {
+        console.log(req.user);
+        const token = req.headers.authorization.replace("Bearer ", "");
+        req.user.tokens = req.user.tokens.filter((e) => e !== token);
+        await req.user.save();
+        console.log(req.user);
+        res.json({
+            status: "success",
+            data: {
+                user: req.user,
+                token: "",
+            },
+        });
+    } catch (error) {
+        res.json({
+            status: "fail",
+            error: error.message,
+        });
+    }
 };

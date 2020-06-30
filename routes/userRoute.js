@@ -5,7 +5,6 @@ const {
     getAllUser,
     getMyProfile,
     updateUser,
-    logoutUser,
 } = require("../controllers/userController");
 const { loginRequired } = require("../middleware/auth.js");
 const User = require("../models/user");
@@ -17,6 +16,5 @@ router.route("/").get(getAllUser).post(createUser);
 
 router.route("/me").get(loginRequired, getMyProfile);
 router.route("/update").post(loginRequired, updateUser);
-router.route("/logout").post(loginRequired, logoutUser);
 
 module.exports = router;

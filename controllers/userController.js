@@ -71,13 +71,3 @@ exports.updateUser = async (req, res) => {
         data: user,
     });
 };
-
-exports.logoutUser = async (req, res) => {
-    const user = req.user;
-    user.tokens.pop();
-    user.save();
-    res.json({
-        status: "success",
-        data: user,
-    });
-};
