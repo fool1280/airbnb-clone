@@ -4,6 +4,7 @@ var path = require("path");
 var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 const AppError = require("./utils/appError");
+const passport = require("passport");
 
 const mongoose = require("mongoose");
 
@@ -11,6 +12,7 @@ var indexRouter = require("./routes/indexRoute");
 var usersRouter = require("./routes/userRoute");
 var authRouter = require("./routes/authRoute");
 var expRouter = require("./routes/expRoute");
+const { errorController } = require("./controllers/errorController");
 require("dotenv").config();
 
 var app = express();
@@ -35,38 +37,17 @@ mongoose
     })
     .then(() => console.log("connected to database"));
 
+app.use(passport.initialize());
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
 app.use("/auth", authRouter);
 app.use("/experiences", expRouter);
 
 app.route("*").all(function (req, res, next) {
-    let error = new Error("Not Found");
-    error.statusCode = 404;
-    error.status = "fail";
-    next(error);
+    next(new AppError(404, "URL not found"));
 });
 
 // error handler
-app.use(function (err, req, res, next) {
-    /*
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
-
-    // render the error page
-    res.status(err.status || 500);
-    res.render("error");*/
-    err.statusCode = err.statusCode || 500;
-    err.status = err.status || "error";
-    err.message = err.message || "Something wrong";
-    if (err) {
-        res.status(err.statusCode).json({
-            status: err.status,
-            message: err.message,
-            stack: err.stack,
-        });
-    }
-});
+app.use(errorController);
 
 module.exports = app;

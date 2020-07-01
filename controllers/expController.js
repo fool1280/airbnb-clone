@@ -2,35 +2,31 @@ const Tag = require("../models/tag");
 
 const Exp = require("../models/experience");
 
+const AppError = require("../utils/appError");
+
 exports.getExperiences = async (req, res, next) => {
+    /*
     const data = await Exp.find().populate("tags").populate("host");
     res.status(200).json({
         status: "ok",
         data: data,
-    });
-};
-
-exports.getExpByTag = async (req, res, next) => {
-    try {
-        const q = await Tag.findOne({ tag: req.params.tag });
-        if (!q) {
-            throw new Error("Tag is not found");
-        }
-        const data = await Exp.find({ tags: q._id }).populate("tags");
-        console.log(data);
-        if (!data) {
-            throw new Error("Experience is not found");
-        }
-        res.status(200).json({
-            status: "success",
-            data: data,
-        });
-    } catch (error) {
-        res.json({
-            status: "fail",
-            error: error.message,
-        });
+    });*/
+    const filters = { ...req.query };
+    const paginationKeys = ["limit", "page", "sort"];
+    paginationKeys.map((el) => delete filters[el]);
+    console.log(filters);
+    if (Array.isArray(filters["tags"])) {
+        let temp = filters["tags"]; //why can I do filters[tags]
+        filters["tags"] = {
+            $in: temp,
+        };
     }
+    const exps = await Exp.find(filters);
+    if (!exps.length) {
+        //Because find returns a cursor
+        return next(new AppError(404, "Experience not found"));
+    }
+    res.json({ status: "success", data: exps });
 };
 
 exports.createExperience = async (req, res, next) => {

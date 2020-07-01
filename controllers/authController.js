@@ -1,47 +1,16 @@
 const User = require("../models/user");
-const jwt = require("jsonwebtoken");
+const AppError = require("../utils/appError");
+const passport = require("../oauth/index");
 
 exports.loginWithEmail = async (req, res, next) => {
     const { email, password } = req.body;
     if (!email || !password) {
-        return res.status(400).json({
-            status: "fail",
-            error: "Email and password are required",
-        });
+        return next(new AppError(400, "Email and password are required"));
     }
     const user = await User.loginWithEmail(email, password);
     if (!user) {
-        return res.status(401).json({
-            status: "fail",
-            error: "Wrong email or password",
-        });
+        return next(new AppError(401, "Wrong email or password"));
     }
-    /* This is wrong because user can have multiple sessions.
-    //Token Expires
-    //1) Create a new one // IF NOT: reuse the newest oken
-    let n = user.tokens.length;
-    if (n > 0) {
-        let currentToken = user.tokens[n - 1];
-        try {
-            const { _id } = jwt.verify(currentToken, process.env.SECRET);
-            return res.json({
-                status: "ok",
-                data: {
-                    user: user,
-                    token: currentToken,
-                },
-            });
-        } catch (error) {
-            const token = await user.generateToken();
-            return res.json({
-                status: "ok",
-                data: {
-                    user: user,
-                    token: token,
-                },
-            });
-        }
-    }*/
     const token = await user.generateToken();
     res.json({
         status: "ok",
@@ -72,4 +41,45 @@ exports.logoutUser = async (req, res) => {
             error: error.message,
         });
     }
+};
+
+exports.loginFacebook = passport.authenticate("facebook", { scope: ["email"] });
+
+exports.facebookAuthHandler = function (req, res, next) {
+    passport.authenticate("facebook", async function (err, profile) {
+        // if email exists in database: => login and return token
+        // if not, create a new user and return token
+        try {
+            const { email } = profile._json;
+            const name =
+                profile._json.first_name + " " + profile._json.last_name;
+            const user = await User.findOneOrCreate({ email, name });
+            const token = await user.generateToken();
+            return res.redirect(`https://localhost:3000/?token=${token}`);
+        } catch (error) {
+            return res.redirect("https://localhost:3000/login");
+        }
+
+        ///if user successfully login => redirect to front-end page
+        //else,
+    })(req, res, next);
+};
+
+exports.loginGoogle = passport.authenticate("google", {
+    scope: ["email", "profile"],
+});
+
+exports.googleAuthHandler = function (req, res, next) {
+    passport.authenticate("google", async function (err, profile) {
+        try {
+            const { email } = profile._json;
+            const name = profile.name.givenName + " " + profile.name.familyName;
+            console.log(email, " ", name);
+            const user = await User.findOneOrCreate({ email, name });
+            const token = await user.generateToken();
+            return res.redirect(`https://localhost:3000/?token=${token}`);
+        } catch (error) {
+            return res.redirect("https://localhost:3000/login");
+        }
+    })(req, res, next);
 };

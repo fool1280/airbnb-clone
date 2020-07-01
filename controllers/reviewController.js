@@ -1,3 +1,4 @@
+const AppError = require("../utils/appError");
 const Review = require("../models/review");
 const Exp = require("../models/experience");
 
@@ -5,14 +6,17 @@ exports.updateReview = async (req, res, next) => {
     try {
         const userId = req.user._id;
         const experienceId = req.params.id;
-        const experience = await Exp.findById(req.params.id);
-        if (!experience) {
-            throw new Error("Experience not found");
-        }
-        const { content, rating, title } = req.body;
         const review = await Review.findOneAndUpdate(
             { user: userId, experience: experienceId },
-            { content, rating, title }
+            {
+                ...req.body,
+                user: userId,
+                experience: experienceId,
+            },
+            {
+                new: true,
+                runValidators: true,
+            }
         );
         res.json({
             status: "success",
@@ -90,9 +94,6 @@ exports.deleteReview = async (req, res, next) => {
             user: req.user._id,
             experience: req.params.id,
         });
-        if (!review) {
-            throw new Error("Review not fount");
-        }
         res.json({
             status: "success",
             data: review,

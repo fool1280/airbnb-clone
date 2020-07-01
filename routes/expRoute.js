@@ -12,7 +12,6 @@ const {
 const {
     getExperiences,
     createExperience,
-    getExpByTag,
 } = require("../controllers/expController");
 
 router.use("/host", loginRequired, hostRequired, hostModifyRouter);
@@ -23,7 +22,6 @@ router
     .get(getExperiences)
     .post(loginRequired, hostRequired, createExperience);
 
-router.route("/:tag").get(getExpByTag);
 router
     .route("/:id/reviews")
     .post(loginRequired, createReview)

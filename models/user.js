@@ -25,7 +25,6 @@ const schema = new mongoose.Schema(
         },
         password: {
             type: String,
-            required: [true, "Password is required"],
         },
         tokens: [String],
         type: {
@@ -43,13 +42,6 @@ const schema = new mongoose.Schema(
                 "Introduction is required for host!",
             ],
         },
-        reviews: [
-            {
-                type: mongoose.Schema.ObjectId,
-                ref: "Review",
-                required: true,
-            },
-        ],
     },
     {
         timestamps: true,
@@ -99,6 +91,17 @@ schema.statics.loginWithEmail = async function (email, password) {
         return user;
     }
     return null;
+};
+
+schema.statics.findOneOrCreate = async function ({ email, name }) {
+    let user = await this.findOne({ email });
+    if (!user) {
+        user = await this.create({
+            email,
+            name,
+        });
+    }
+    return user;
 };
 
 schema.pre("save", async function (next) {

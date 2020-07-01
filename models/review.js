@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Exp = require("../models/experience");
+const AppError = require("../utils/appError");
 
 const schema = new mongoose.Schema({
     title: {
@@ -27,9 +28,24 @@ const schema = new mongoose.Schema({
     },
 });
 
+//middleware after save, trigger by .create()
 schema.post("save", async function () {
     //this === review doc (review instance)
     await this.constructor.calculateAverage(this.experience);
+});
+
+schema.pre(/^findOneAnd/, async function (next) {
+    //this === Review.query (query)
+    this.doc = await this.findOne();
+    if (!this.doc) {
+        return next(new AppError(404, "Experience not found"));
+    }
+    return next();
+});
+
+schema.post(/^findOneAnd/, async function () {
+    //this === Review.query
+    await this.doc.constructor.calculateAverage(this.doc.experience);
 });
 
 schema.statics.calculateAverage = async function (id) {
