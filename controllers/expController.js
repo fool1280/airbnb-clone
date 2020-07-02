@@ -21,12 +21,27 @@ exports.getExperiences = async (req, res, next) => {
             $in: temp,
         };
     }
-    const exps = await Exp.find(filters);
+    let query = Exp.find(filters);
+    if (req.query.sort) {
+        const sortBy = req.query.sort.split(",").join(" ");
+        console.log(sortBy);
+        query.sort(sortBy);
+    } else {
+        query.sort("-createdAt");
+    }
+    const page = req.query.page * 1 || 1;
+    const limit = req.query.limit * 1 || 2;
+    const skip = (page - 1) * limit;
+    const countExperiences = await Exp.find(filters).countDocuments();
+    if (req.query.page && skip > countExperiences)
+        return next(new AppError(400, "Page number out of range"));
+    query = query.skip(skip).limit(limit);
+    const exps = await query;
     if (!exps.length) {
         //Because find returns a cursor
         return next(new AppError(404, "Experience not found"));
     }
-    res.json({ status: "success", data: exps });
+    res.json({ status: "success", data: exps, count: countExperiences });
 };
 
 exports.createExperience = async (req, res, next) => {
